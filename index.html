@@ -177,6 +177,26 @@ const excipientes = [
   { id:"ben", nombre:"Benzoato de sodio", alternativos:"Sodium benzoate", nombreQuimico:"Benzoato de sodio", formula:"C7H5NaO2", smiles:"C1=CC=C(C=C1)C(=O)[O-].[Na+]", funcion:"Conservante", forma:"Jarabes", descripcion:"Conservante eficaz en medios ácidos.", aplicaciones:"Jarabes, soluciones.", almacenamiento:"Envase hermético.", incompatibilidades:"Medios muy alcalinos"},
   { id:"gel", nombre:"Gelatina", alternativos:"Colágeno parcialmente hidrolizado", nombreQuimico:"Proteína derivada del colágeno", formula:"Variable", smiles:"", funcion:"Formador de cápsulas", forma:"Cápsulas", descripcion:"Proteína filmógena usada para cápsulas.", aplicaciones:"Cápsulas, recubrimientos.", almacenamiento:"Ambiente seco.", incompatibilidades:"Desnaturalizantes"}
 ];
+/* ---------------------- Cargar excipientes extra desde Google Sheets ---------------------- */
+async function loadExcipientesFromSheet() {
+  const sheetUrl = 'TU_URL_CSV_AQUI'; // reemplaza con la URL que copiaste
+  try {
+    const res = await fetch(sheetUrl);       // obtiene el CSV
+    const csvText = await res.text();        // lo convierte a texto
+    const lines = csvText.split('\n').filter(l => l.trim() !== ''); // separa filas
+    const headers = lines[0].split(',').map(h => h.trim());         // obtiene encabezados
+    const extraExcipientes = lines.slice(1).map(line => {
+      const values = line.split(',');
+      const obj = {};
+      headers.forEach((h,i)=>obj[h] = values[i] ? values[i].trim() : '');
+      return obj;
+    });
+    excipientes.push(...extraExcipientes);   // agrega al array original
+    applyFilters();                          // renderiza los nuevos excipientes
+  } catch(err) {
+    console.error('Error cargando excipientes desde Sheets:', err);
+  }
+} 
 
 /* -------------- estado (localStorage) -------------- */
 const LS_KEYS = { favorites: 'lumin_favs', history: 'lumin_hist', stats: 'lumin_stats' };
@@ -459,9 +479,7 @@ document.getElementById('exportAll').addEventListener('click', ()=>{ alert('Expo
 
 /* -------------- Init: render all -------------- */
 applyFilters(); updateCompareUI(); updateStatsUI();
-
+loadExcipientesFromSheet(); 
 </script>
 </body>
 </html>  
-
-
