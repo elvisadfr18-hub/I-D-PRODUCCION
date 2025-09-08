@@ -15,7 +15,7 @@
   <!-- html2canvas + jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script> 
   <style>
     :root{
       --bg: #fdfaf6; --card:#ffffff; --text:#2e2e2e;
@@ -179,24 +179,44 @@ const excipientes = [
 ];
 /* ---------------------- Cargar excipientes extra desde Google Sheets ---------------------- */
 async function loadExcipientesFromSheet() {
-  const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQWFLzeX1eM6hxjjHNbeD8gmKusVgs2KpClnMhZbb_Rie3VIo_VdV-3-d2NmJJmVy7TvXHzcfKt4pTK/pub?gid=0&single=true&output=csv'; // reemplaza con la URL que copiaste
+  const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQWFLzeX1eM6hxjjHNbeD8gmKusVgs2KpClnMhZbb_Rie3VIo_VdV-3-d2NmJJmVy7TvXHzcfKt4pTK/pub?gid=0&single=true&output=csv'; // Reemplaza con la URL CSV de tu hoja publicada
   try {
-    const res = await fetch(sheetUrl);       // obtiene el CSV
-    const csvText = await res.text();        // lo convierte a texto
-    const lines = csvText.split('\n').filter(l => l.trim() !== ''); // separa filas
-    const headers = lines[0].split(',').map(h => h.trim());         // obtiene encabezados
-    const extraExcipientes = lines.slice(1).map(line => {
-      const values = line.split(',');
-      const obj = {};
-      headers.forEach((h,i)=>obj[h] = values[i] ? values[i].trim() : '');
-      return obj;
-    });
-    excipientes.push(...extraExcipientes);   // agrega al array original
-    applyFilters();                          // renderiza los nuevos excipientes
+    const res = await fetch(sheetUrl);
+    const csvText = await res.text();
+
+    // Parse CSV con PapaParse
+    const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
+
+    // Mapear filas a objetos de excipientes
+    const extraExcipientes = parsed.data
+      .map(row => ({
+        id: row.id || '',
+        nombre: row.nombre || '',
+        alternativos: row.alternativos || '',
+        nombreQuimico: row.nombreQuimico || '',
+        formula: row.formula || '',
+        smiles: row.smiles || '',
+        funcion: row.funcion || '',
+        forma: row.forma || '',
+        descripcion: row.descripcion || '',
+        aplicaciones: row.aplicaciones || '',
+        almacenamiento: row.almacenamiento || '',
+        incompatibilidades: row.incompatibilidades || ''
+      }))
+      .filter(ex => ex.nombre && ex.nombre.trim() !== ''); // elimina filas sin nombre
+
+    // Agregar al array principal
+    excipientes.push(...extraExcipientes);
+
+    // Renderizar
+    applyFilters();
   } catch(err) {
     console.error('Error cargando excipientes desde Sheets:', err);
   }
-} 
+}
+
+// Llamar a la función después de definirla
+loadExcipientesFromSheet();
 
 /* -------------- estado (localStorage) -------------- */
 const LS_KEYS = { favorites: 'lumin_favs', history: 'lumin_hist', stats: 'lumin_stats' };
