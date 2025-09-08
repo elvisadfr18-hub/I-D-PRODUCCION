@@ -179,7 +179,7 @@ const excipientes = [
 ];
 /* ---------------------- Cargar excipientes extra desde Google Sheets ---------------------- */
 async function loadExcipientesFromSheet() {
-  const sheetUrl = 'TU_URL_CSV_AQUI'; // reemplaza con la URL que copiaste
+  const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQWFLzeX1eM6hxjjHNbeD8gmKusVgs2KpClnMhZbb_Rie3VIo_VdV-3-d2NmJJmVy7TvXHzcfKt4pTK/pub?gid=0&single=true&output=csv'; // reemplaza con la URL que copiaste
   try {
     const res = await fetch(sheetUrl);       // obtiene el CSV
     const csvText = await res.text();        // lo convierte a texto
