@@ -179,42 +179,27 @@ const excipientes = [
 ];
 /* ---------------------- Cargar excipientes extra desde Google Sheets ---------------------- */
 async function loadExcipientesFromSheet() {
-  const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQWFLzeX1eM6hxjjHNbeD8gmKusVgs2KpClnMhZbb_Rie3VIo_VdV-3-d2NmJJmVy7TvXHzcfKt4pTK/pub?gid=0&single=true&output=csv'; // Reemplaza con la URL CSV de tu hoja publicada
+  const sheetUrl = 'TU_URL_CSV_AQUI'; // reemplaza con la URL CSV de tu Google Sheet
   try {
-    const res = await fetch(sheetUrl);
-    const csvText = await res.text();
+    const res = await fetch(sheetUrl);        // obtiene el CSV
+    const csvText = await res.text();         // lo convierte a texto
 
-    // Parse CSV con PapaParse
+    // Parse CSV usando PapaParse
     const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
+    if (!parsed.data || !parsed.data.length) return;
 
-    // Mapear filas a objetos de excipientes
-    const extraExcipientes = parsed.data
-      .map(row => ({
-        id: row.id || '',
-        nombre: row.nombre || '',
-        alternativos: row.alternativos || '',
-        nombreQuimico: row.nombreQuimico || '',
-        formula: row.formula || '',
-        smiles: row.smiles || '',
-        funcion: row.funcion || '',
-        forma: row.forma || '',
-        descripcion: row.descripcion || '',
-        aplicaciones: row.aplicaciones || '',
-        almacenamiento: row.almacenamiento || '',
-        incompatibilidades: row.incompatibilidades || ''
-      }))
-      .filter(ex => ex.nombre && ex.nombre.trim() !== ''); // elimina filas sin nombre
+    // Filtrar filas vacías y duplicados
+    const extraExcipientesFiltrados = parsed.data.filter(ex => 
+      ex.nombre && ex.nombre.trim() !== '' &&                  // descarta filas sin nombre
+      !excipientes.some(e => e.id === ex.id || e.nombre === ex.nombre) // evita duplicados
+    );
 
-    // Agregar al array principal
-    excipientes.push(...extraExcipientes);
-
-    // Renderizar
-    applyFilters();
+    excipientes.push(...extraExcipientesFiltrados); // agrega al array original
+    applyFilters();                                 // renderiza los nuevos excipientes
   } catch(err) {
     console.error('Error cargando excipientes desde Sheets:', err);
   }
 }
-
 // Llamar a la función después de definirla
 loadExcipientesFromSheet();
 
