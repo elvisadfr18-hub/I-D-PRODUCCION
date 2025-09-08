@@ -349,10 +349,11 @@ document.getElementById('compareShow').onclick = ()=>{
   const a = excipientes.find(x=>x.id===compareSelection[0]); const b = excipientes.find(x=>x.id===compareSelection[1]);
   const wrap = document.getElementById('compareTableWrap'); wrap.style.display='block';
   wrap.innerHTML = `<table class="compare-table"><thead><tr><th>Campo</th><th>${a.nombre}</th><th>${b.nombre}</th></tr></thead><tbody>
+    <tr><td>Función</td><td>${a.descripción}</td><td>${b.descripción}</td></tr>
     <tr><td>Función</td><td>${a.funcion}</td><td>${b.funcion}</td></tr>
     <tr><td>Forma</td><td>${a.forma}</td><td>${b.forma}</td></tr>
     <tr><td>Fórmula</td><td>${a.formula||'-'}</td><td>${b.formula||'-'}</td></tr>
-    <tr><td>Aplicaciones</td><td>${a.aplicaciones||'-'}</td><td>${b.aplicaciones||'-'}</td></tr>
+    <tr><td>Aplicaciones</td><td>${a.aplicación||'-'}</td><td>${b.aplicación||'-'}</td></tr>
     <tr><td>Almacenamiento</td><td>${a.almacenamiento||'-'}</td><td>${b.almacenamiento||'-'}</td></tr>
     <tr><td>Incompatibilidades</td><td>${a.incompatibilidades||'-'}</td><td>${b.incompatibilidades||'-'}</td></tr>
   </tbody></table>`;
@@ -463,3 +464,4 @@ applyFilters(); updateCompareUI(); updateStatsUI();
 </script>
 </body>
 </html>
+
