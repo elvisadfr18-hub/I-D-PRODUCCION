@@ -263,10 +263,15 @@ function createCard(ex){
 }
 
 function renderResults(list){
-  const el = document.getElementById('results'); el.innerHTML='';
-  list.forEach(ex => el.appendChild(createCard(ex)));
+  const el = document.getElementById('results'); 
+  el.innerHTML='';
+  
+  // filtrar tarjetas vacías
+  const filteredList = list.filter(ex => ex.nombre && ex.nombre.trim() !== '');
+  
+  filteredList.forEach(ex => el.appendChild(createCard(ex)));
   attachCardEvents();
-  drawMolecules(list);
+  drawMolecules(filteredList);
   updateStatsUI();
 }
 
