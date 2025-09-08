@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Lumin 2.0 — Asistente de Excipientes (Crema & Rojo)</title>
+
+  <!-- Fuente -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <!-- ChemDoodle (para SMILES) -->
+  <script src="https://www.chemoodle.com/assets/9.4.0/ChemDoodleWeb.js"></script>
+  <link rel="stylesheet" href="https://www.chemoodle.com/assets/9.4.0/ChemDoodleWeb.css">
+
+  <!-- html2canvas + jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    :root{
+      --bg: #fdfaf6; --card:#ffffff; --text:#2e2e2e;
+      --accent:#c62828; --accent-2:#e57373; --muted:#7b7b7b;
+    }
+    [data-theme="dark"]{
+      --bg:#1c1c1c; --card:#222327; --text:#fdfaf6; --accent:#e57373; --accent-2:#c94b4b; --muted:#bdbdbd;
+    }
+    html,body{height:100%;margin:0;background:var(--bg);font-family:'Inter',system-ui,Arial,sans-serif;color:var(--text);}
+    .page{max-width:1200px;margin:24px auto;padding:18px}
+    header{display:flex;align-items:center;gap:18px;background:linear-gradient(90deg,rgba(255,255,255,0.6),rgba(255,255,255,0.3));padding:14px;border-radius:12px;box-shadow:0 10px 28px rgba(0,0,0,0.06)}
+    .logo{width:84px;height:84px;border-radius:12px;background:linear-gradient(180deg,var(--card),#fff);display:flex;align-items:center;justify-content:center;border:3px solid var(--accent)}
+    .logo h2{margin:0;color:var(--accent);font-size:18px}
+    header .title{flex:1}
+    header h1{margin:0;font-size:20px}
+    header p{margin:6px 0 0;color:var(--muted);font-size:13px}
+
+    .top-controls{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0;align-items:center}
+    .btn{background:var(--accent);color:white;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:600}
+    .btn.ghost{background:transparent;border:1px solid rgba(0,0,0,0.06);color:var(--text)}
+    .small{padding:8px 10px;font-size:14px}
+    .search,.select{padding:10px;border-radius:10px;border:1px solid #ddd;min-width:180px}
+
+    .layout{display:grid;grid-template-columns:1fr 380px;gap:18px}
+    @media(max-width:980px){.layout{grid-template-columns:1fr} .avatarPanel{order:-1}}
+
+    #results{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-top:6px}
+    .card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 8px 20px rgba(0,0,0,0.06);transition:transform .12s}
+    .card:hover{transform:translateY(-6px)}
+    .card h3{margin:0;color:var(--accent)}
+    .meta{font-size:13px;color:var(--muted);margin:6px 0}
+    .field{font-size:14px;margin:6px 0;color:var(--text)}
+    .actions{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+    .speak-btn{background:var(--accent);color:white;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+    .pdf-btn{background:transparent;border:1px solid var(--accent);color:var(--accent);padding:8px 10px;border-radius:8px;cursor:pointer}
+    .compare-chk{transform:scale(1.05);margin-left:8px}
+
+    .avatarPanel{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 10px 24px rgba(0,0,0,0.06);text-align:center}
+    .svg-avatar{width:220px;margin:8px auto;display:block}
+    .mouth{transition:transform .07s linear;transform-origin:center 0}
+    .panel{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 10px 24px rgba(0,0,0,0.06);}
+
+    .compare-table{width:100%;border-collapse:collapse;margin-top:10px}
+    .compare-table th,.compare-table td{border:1px solid #eee;padding:8px;text-align:left;font-size:13px}
+    .dashboard{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+    .stat{background:linear-gradient(90deg,rgba(255,255,255,0.6),rgba(255,255,255,0.3));padding:8px;border-radius:8px;font-size:13px}
+    footer{margin-top:20px;text-align:center;color:var(--muted)}
+  </style>
+</head>
+<body data-theme="light">
+  <div class="page">
+    <header>
+      <div class="logo"><h2>Lumin</h2></div>
+      <div class="title">
+        <h1>📚👨🏻‍🔬👩🏻‍🔬 Búsqueda de Excipientes Farmacéuticos </h1>
+        <p>Interfaz profesional e integral para conocer, comparar y seleccionar excipientes, facilitando la innovación y la calidad en la industria farmacéutica
+</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+        <div style="display:flex;gap:8px">
+          <button id="activateBtn" class="btn small">🚀 Activar Lumin</button>
+          <button id="themeBtn" class="btn small ghost">🌙 Modo oscuro</button>
+        </div>
+        <div style="font-size:12px;color:var(--muted)">© 2025 Lumin</div>
+      </div>
+    </header>
+
+    <div class="top-controls">
+      <input id="qName" class="search" placeholder="Buscar por nombre o sinónimo..." autocomplete="off">
+      <select id="qFunction" class="select"><option value="">Filtrar por función</option>
+        <option>Aglutinante</option><option>Diluyente</option><option>Lubricante</option><option>Edulcorante</option>
+        <option>Conservante</option><option>Desintegrante</option><option>Suspensor</option><option>Solvente</option><option>Colorante</option>
+      </select>
+      <select id="qForm" class="select"><option value="">Filtrar por forma farmacéutica</option>
+        <option>Comprimidos</option><option>Cápsulas</option><option>Jarabes</option><option>Suspensiones</option><option>Cremas</option>
+      </select>
+      <button id="clearFilters" class="btn small ghost">Limpiar</button>
+      <button id="openCompare" class="btn small">Comparar (0)</button>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button id="downloadJson" class="btn small ghost">⬇️ Exportar JSON</button>
+      </div>
+    </div>
+
+    <div class="layout">
+      <main>
+        <div id="results" aria-live="polite"></div>
+      </main>
+
+      <aside>
+        <div class="avatarPanel">
+          <svg class="svg-avatar" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+            <rect x="0" y="0" width="200" height="200" rx="20" fill="#fff"/>
+            <circle cx="100" cy="70" r="46" fill="#fff"/>
+            <circle cx="78" cy="64" r="6" fill="#333"/>
+            <circle cx="122" cy="64" r="6" fill="#333"/>
+            <g id="mouthGroup" transform="translate(100,100)">
+              <ellipse class="mouth" cx="0" cy="10" rx="20" ry="6" fill="#b33"/>
+            </g>
+            <text x="100" y="170" text-anchor="middle" fill="var(--muted)" font-size="12">Lumin — Asistente</text>
+          </svg>
+
+          <p style="font-size:13px;color:var(--muted)">Activa Lumin y luego usa 🔊 Escuchar o el chat.</p>
+          <div style="display:flex;gap:8px;justify-content:center;margin-top:8px">
+            <button id="testSpeak" class="btn small">🔊 Probar voz</button>
+            <button id="exportAll" class="btn small ghost">📦 Exportar todo (ZIP)</button>
+          </div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="panel">
+          <h3 style="margin:0 0 8px 0;color:var(--accent)">Comparador</h3>
+          <div id="compareBox"><em style="color:var(--muted)">No hay selección</em></div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button id="compareShow" class="btn small" disabled>Ver comparación</button>
+            <button id="compareClear" class="btn small ghost">Limpiar</button>
+          </div>
+          <div id="compareTableWrap" style="margin-top:10px;display:none"></div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="panel">
+          <h3 style="margin:0 0 8px 0;color:var(--accent)">Panel & Estadísticas</h3>
+          <div class="dashboard">
+            <div class="stat" id="mostSearched">Top búsquedas: —</div>
+            <div class="stat" id="favoritesCount">Favoritos: 0</div>
+            <div class="stat" id="historyCount">Historial: 0</div>
+          </div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="panel">
+          <h3 style="margin:0 0 8px 0;color:var(--accent)">Chat (Lumin)</h3>
+          <div id="chatWindow" style="height:200px;overflow:auto;border:1px solid #eee;padding:8px;border-radius:8px;background:linear-gradient(180deg,#fff,#faf7f2)"></div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <input id="chatInput" placeholder="Haz una pregunta (ej. '¿Qué aglutinante recomiendas para comprimidos masticables?')" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ddd">
+            <button id="chatSend" class="btn small">Enviar</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <footer>Para decisiones regulatorias, consulte farmacopeas y certificado de análisis de proveedores oficiales.</footer>
+  </div>
+
+<script>
+/* ---------------------- Datos: 10 excipientes ---------------------- */
+const excipientes = [
+  { id:"lac", nombre:"Lactosa monohidrato", alternativos:"Milk sugar", nombreQuimico:"β-D-galactopiranosil-(1→4)-D-glucosa · H2O", formula:"C12H22O11 · H2O", smiles:"O[C@@H]1[C@H](O)[C@@H](O[C@H]2O[C@@H](CO)[C@H](O)[C@H]2O)[C@@H](O)[C@H](O)[C@H]1O", funcion:"Diluyente", forma:"Comprimidos", descripcion:"Polvo cristalino, diluyente y agente de carga; buena compresibilidad.", aplicaciones:"Tabletas, cápsulas, polvos para suspensión.", almacenamiento:"Lugar fresco y seco.", incompatibilidades:"Aminas (Maillard)"},
+  { id:"cel", nombre:"Celulosa microcristalina", alternativos:"Avicel®", nombreQuimico:"Polímero de β-1,4-glucosa", formula:"(C6H10O5)n", smiles:"", funcion:"Aglutinante / Diluyente", forma:"Comprimidos", descripcion:"Excelente compresibilidad; se usa en compresión directa.", aplicaciones:"Comprimidos, recubrimientos.", almacenamiento:"Lugar seco.", incompatibilidades:"Oxidantes fuertes"},
+  { id:"est", nombre:"Estearato de magnesio", alternativos:"Magnesium stearate", nombreQuimico:"Octadecanoato de magnesio", formula:"C36H70MgO4", smiles:"CCCCCCCCCCCCCCCCCC(=O)[O-].[Mg+2].O=C([O-])CCCCCCCCCCCCCCCCC", funcion:"Lubricante", forma:"Comprimidos", descripcion:"Lubricante hidrofóbico que reduce fricción en punzones.", aplicaciones:"Tabletas y cápsulas.", almacenamiento:"Envase hermético.", incompatibilidades:"Exceso puede retardar disolución"},
+  { id:"pov", nombre:"Povidona", alternativos:"Polivinilpirrolidona (PVP)", nombreQuimico:"Polímero 1-vinil-2-pirrolidona", formula:"(C6H9NO)n", smiles:"", funcion:"Aglutinante", forma:"Comprimidos", descripcion:"Polímero hidrosoluble como aglutinante y solubilizante.", aplicaciones:"Tabletas, cápsulas.", almacenamiento:"Envase cerrado.", incompatibilidades:"Oxidantes"},
+  { id:"sor", nombre:"Sorbitol", alternativos:"Glucitol", nombreQuimico:"D-glucitol", formula:"C6H14O6", smiles:"C(C(C(C(C(CO)O)O)O)O)O", funcion:"Edulcorante / Humectante", forma:"Jarabes", descripcion:"Polialcohol edulcorante; humectante en jarabes.", aplicaciones:"Jarabes, masticables.", almacenamiento:"Envase hermético.", incompatibilidades:"Efecto laxante a altas dosis"},
+  { id:"met", nombre:"Metilparabeno", alternativos:"Methylparaben", nombreQuimico:"p-hidroxibenzoato de metilo", formula:"C8H8O3", smiles:"COC(=O)C1=CC=C(C=C1)O", funcion:"Conservante", forma:"Jarabes", descripcion:"Conservante antimicrobiano en medios ácidos.", aplicaciones:"Jarabes, cremas.", almacenamiento:"Protegido de la luz.", incompatibilidades:"Medios alcalinos"},
+  { id:"pro", nombre:"Propilenglicol", alternativos:"1,2-propanodiol", nombreQuimico:"Propano-1,2-diol", formula:"C3H8O2", smiles:"CC(CO)O", funcion:"Solvente / Humectante", forma:"Jarabes", descripcion:"Solvente hidrofílico usado como humectante.", aplicaciones:"Jarabes, soluciones tópicas.", almacenamiento:"Envase cerrado.", incompatibilidades:"Oxidantes fuertes"},
+  { id:"sio2", nombre:"Dióxido de silicio coloidal", alternativos:"Sílice coloidal", nombreQuimico:"SiO2", formula:"SiO2", smiles:"", funcion:"Fluidez / Absorbente", forma:"Comprimidos", descripcion:"Mejora la fluidez y absorción de humedad.", aplicaciones:"Tabletas, polvos.", almacenamiento:"Lugar seco.", incompatibilidades:"Evitar HF"},
+  { id:"ben", nombre:"Benzoato de sodio", alternativos:"Sodium benzoate", nombreQuimico:"Benzoato de sodio", formula:"C7H5NaO2", smiles:"C1=CC=C(C=C1)C(=O)[O-].[Na+]", funcion:"Conservante", forma:"Jarabes", descripcion:"Conservante eficaz en medios ácidos.", aplicaciones:"Jarabes, soluciones.", almacenamiento:"Envase hermético.", incompatibilidades:"Medios muy alcalinos"},
+  { id:"gel", nombre:"Gelatina", alternativos:"Colágeno parcialmente hidrolizado", nombreQuimico:"Proteína derivada del colágeno", formula:"Variable", smiles:"", funcion:"Formador de cápsulas", forma:"Cápsulas", descripcion:"Proteína filmógena usada para cápsulas.", aplicaciones:"Cápsulas, recubrimientos.", almacenamiento:"Ambiente seco.", incompatibilidades:"Desnaturalizantes"}
+];
+
+/* -------------- estado (localStorage) -------------- */
+const LS_KEYS = { favorites: 'lumin_favs', history: 'lumin_hist', stats: 'lumin_stats' };
+function loadLS(key){ try { return JSON.parse(localStorage.getItem(key)||'[]'); } catch(e){ return []; } }
+function saveLS(key,val){ localStorage.setItem(key, JSON.stringify(val)); }
+
+let favorites = loadLS(LS_KEYS.favorites);
+let history = loadLS(LS_KEYS.history);
+let stats = loadLS(LS_KEYS.stats) || {}; // key:count
+
+/* -------------- TTS robusto -------------- */
+async function loadVoicesOnce(timeout=3000){
+  if (!('speechSynthesis' in window)) return [];
+  const synth = window.speechSynthesis;
+  let voices = synth.getVoices();
+  if (voices.length) return voices;
+  return await new Promise(resolve=>{
+    let resolved=false;
+    const handler = ()=>{ if(resolved) return; const v=synth.getVoices(); if(v.length){resolved=true; synth.removeEventListener('voiceschanged', handler); resolve(v);} };
+    synth.addEventListener('voiceschanged', handler);
+    setTimeout(()=>{ if(!resolved){ resolved=true; synth.removeEventListener('voiceschanged', handler); resolve(synth.getVoices()); } }, timeout);
+  });
+}
+async function speak(text){
+  if (!('speechSynthesis' in window)){ alert('Tu navegador no soporta síntesis de voz'); return; }
+  const synth = window.speechSynthesis;
+  synth.cancel();
+  const voices = await loadVoicesOnce();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'es-ES';
+  if (voices && voices.length) u.voice = voices.find(v=>v.lang && v.lang.toLowerCase().startsWith('es')) || voices[0];
+  synth.speak(u);
+  return new Promise(resolve=>{ u.onend=resolve; u.onerror=resolve; });
+}
+
+/* -------------- Avatar mouth animation -------------- */
+let mouthTimer = null;
+function startMouth(){ const m = document.querySelector('.mouth'); if(!m) return; if(mouthTimer) clearInterval(mouthTimer); mouthTimer = setInterval(()=>{ m.style.transform = `scaleY(${0.6 + Math.random()*1.2})`; }, 90); }
+function stopMouth(){ const m = document.querySelector('.mouth'); if(mouthTimer) clearInterval(mouthTimer); if(m) m.style.transform = 'scaleY(1)'; }
+
+/* -------------- Render UI -------------- */
+function createCard(ex){
+  const a = document.createElement('article'); a.className='card'; a.dataset.id=ex.id;
+  a.innerHTML = `
+    <h3>${ex.nombre}</h3>
+    <div class="meta"><strong>Sinónimo:</strong> ${ex.alternativos||'-'}</div>
+    <div class="meta"><strong>Nombre químico:</strong> ${ex.nombreQuimico||'-'}</div>
+    <div class="meta"><strong>Fórmula:</strong> ${ex.formula||'-'}</div>
+    <div class="field"><strong>Función:</strong> ${ex.funcion}</div>
+    <div class="field"><strong>Forma farmacéutica:</strong> ${ex.forma}</div>
+    <div class="field"><strong>Descripción:</strong> ${ex.descripcion}</div>
+    <div class="field"><strong>Aplicaciones:</strong> ${ex.aplicaciones||'-'}</div>
+    <div class="field"><strong>Almacenamiento:</strong> ${ex.almacenamiento||'-'}</div>
+    <div class="field"><strong>Incompatibilidades:</strong> ${ex.incompatibilidades||'-'}</div>
+    <div class="actions">
+      <button class="speak-btn" data-id="${ex.id}">🔊 Escuchar</button>
+      <button class="pdf-btn" data-id="${ex.id}">📄 Exportar PDF</button>
+      <button class="btn small ghost fav-btn" data-id="${ex.id}">${favorites.includes(ex.id)?'★ Favorito':'☆ Favorito'}</button>
+      <label style="margin-left:auto;display:flex;align-items:center;"><input type="checkbox" class="compare-chk" data-id="${ex.id}"> Comparar</label>
+    </div>
+    <div style="margin-top:8px;"><canvas id="mol_${ex.id}" width="260" height="120"></canvas></div>
+  `;
+  return a;
+}
+
+function renderResults(list){
+  const el = document.getElementById('results'); el.innerHTML='';
+  list.forEach(ex => el.appendChild(createCard(ex)));
+  attachCardEvents();
+  drawMolecules(list);
+  updateStatsUI();
+}
+
+/* -------------- Draw molecules (ChemDoodle safe) -------------- */
+function drawMolecules(list){
+  if(!window.ChemDoodle) return;
+  list.forEach(ex=>{
+    try{
+      const canvasId = `mol_${ex.id}`;
+      const c = document.getElementById(canvasId);
+      if(!c) return;
+      if(ex.smiles && ex.smiles.trim()){
+        const mol = ChemDoodle.readSMILES(ex.smiles);
+        const viewer = new ChemDoodle.ViewerCanvas(canvasId,260,120);
+        viewer.loadMolecule(mol);
+      } else {
+        const ctx = c.getContext && c.getContext('2d');
+        if(ctx){ ctx.clearRect(0,0,c.width,c.height); ctx.font='12px Inter,Arial'; ctx.fillStyle='#888'; ctx.fillText('Estructura no disponible',8,20); }
+      }
+    }catch(e){}
+  });
+}
+
+/* -------------- Card events -------------- */
+function attachCardEvents(){
+  document.querySelectorAll('.speak-btn').forEach(b=>{
+    b.onclick = async (ev)=>{
+      const id = ev.currentTarget.dataset.id; const ex = excipientes.find(x=>x.id===id); if(!ex) return;
+      // history & stats
+      addHistory(id); incrStat(id);
+      // speak
+      startMouth();
+      await speak(`${ex.nombre}. ${ex.descripcion}. Función: ${ex.funcion}. Aplicación: ${ex.aplicaciones}.`);
+      stopMouth();
+    };
+  });
+  document.querySelectorAll('.pdf-btn').forEach(b=>{
+    b.onclick = async (ev)=>{
+      const id = ev.currentTarget.dataset.id; const ex = excipientes.find(x=>x.id===id);
+      if(!ex) return; const card = ev.currentTarget.closest('.card');
+      // clone for clean PDF
+      const clone = card.cloneNode(true); clone.style.width='800px'; clone.style.padding='20px'; clone.querySelectorAll('button,input').forEach(n=>n.remove());
+      document.body.appendChild(clone);
+      try{
+        const canvas = await html2canvas(clone, {scale:2, useCORS:true, backgroundColor:null});
+        const img = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({unit:'px', format:[canvas.width, canvas.height]});
+        pdf.addImage(img,'PNG',0,0,canvas.width, canvas.height);
+        pdf.save(`${ex.nombre.replace(/\s+/g,'_')}_ficha.pdf`);
+      }catch(err){ alert('Error generando PDF: '+err.message); }
+      document.body.removeChild(clone);
+    };
+  });
+  document.querySelectorAll('.fav-btn').forEach(b=>{
+    b.onclick = (ev)=>{
+      const id = ev.currentTarget.dataset.id;
+      if(favorites.includes(id)){ favorites = favorites.filter(x=>x!==id); ev.currentTarget.textContent='☆ Favorito'; }
+      else { favorites.push(id); ev.currentTarget.textContent='★ Favorito'; }
+      saveLS(LS_KEYS.favorites, favorites); updateStatsUI();
+    };
+  });
+  document.querySelectorAll('.compare-chk').forEach(chk=>{
+    chk.onchange = (ev)=>{ const id = ev.currentTarget.dataset.id; if(ev.currentTarget.checked){ if(compareSelection.length>=2){ alert('Máximo 2 para comparar'); ev.currentTarget.checked=false; return;} compareSelection.push(id);} else { compareSelection = compareSelection.filter(x=>x!==id);} updateCompareUI(); };
+  });
+}
+
+/* -------------- History & Stats -------------- */
+function addHistory(id){
+  history.unshift({ id, t: Date.now() });
+  history = history.slice(0,50);
+  saveLS(LS_KEYS.history, history);
+  updateStatsUI();
+}
+function incrStat(id){
+  stats[id] = (stats[id]||0)+1;
+  saveLS(LS_KEYS.stats, stats);
+  updateStatsUI();
+}
+function updateStatsUI(){
+  // top searches
+  const entries = Object.entries(stats).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const top = entries.map(e=>{ const ex = excipientes.find(x=>x.id===e[0]); return ex?`${ex.nombre} (${e[1]})`:null; }).filter(Boolean).join(' • ') || '—';
+  document.getElementById('mostSearched').textContent = 'Top búsquedas: ' + top;
+  document.getElementById('favoritesCount').textContent = `Favoritos: ${favorites.length}`;
+  document.getElementById('historyCount').textContent = `Historial: ${history.length}`;
+}
+
+/* -------------- Compare logic -------------- */
+let compareSelection = [];
+function updateCompareUI(){
+  const box = document.getElementById('compareBox');
+  if(compareSelection.length===0) box.innerHTML = '<em style="color:var(--muted)">No hay selección</em>';
+  else box.innerHTML = compareSelection.map(id=>{ const ex = excipientes.find(x=>x.id===id); return `<div style="padding:6px 0;border-bottom:1px dashed #eee"><strong>${ex.nombre}</strong><div style="font-size:13px;color:var(--muted)">${ex.funcion} • ${ex.forma}</div></div>`}).join('');
+  document.getElementById('openCompare').innerText = `Comparar (${compareSelection.length})`;
+  document.getElementById('compareShow').disabled = compareSelection.length<2;
+}
+document.getElementById('compareShow').onclick = ()=>{
+  if(compareSelection.length<2){ alert('Selecciona 2 excipientes para comparar'); return; }
+  const a = excipientes.find(x=>x.id===compareSelection[0]); const b = excipientes.find(x=>x.id===compareSelection[1]);
+  const wrap = document.getElementById('compareTableWrap'); wrap.style.display='block';
+  wrap.innerHTML = `<table class="compare-table"><thead><tr><th>Campo</th><th>${a.nombre}</th><th>${b.nombre}</th></tr></thead><tbody>
+    <tr><td>Función</td><td>${a.funcion}</td><td>${b.funcion}</td></tr>
+    <tr><td>Forma</td><td>${a.forma}</td><td>${b.forma}</td></tr>
+    <tr><td>Fórmula</td><td>${a.formula||'-'}</td><td>${b.formula||'-'}</td></tr>
+    <tr><td>Aplicaciones</td><td>${a.aplicaciones||'-'}</td><td>${b.aplicaciones||'-'}</td></tr>
+    <tr><td>Almacenamiento</td><td>${a.almacenamiento||'-'}</td><td>${b.almacenamiento||'-'}</td></tr>
+    <tr><td>Incompatibilidades</td><td>${a.incompatibilidades||'-'}</td><td>${b.incompatibilidades||'-'}</td></tr>
+  </tbody></table>`;
+};
+document.getElementById('compareClear').onclick = ()=>{
+  compareSelection = []; document.querySelectorAll('.compare-chk').forEach(c=>c.checked=false); updateCompareUI(); document.getElementById('compareTableWrap').style.display='none';
+};
+
+/* -------------- Search predictive + filters -------------- */
+function applyFilters(){
+  const q = (document.getElementById('qName').value||'').toLowerCase();
+  const f = (document.getElementById('qFunction').value||'').toLowerCase();
+  const fo = (document.getElementById('qForm').value||'').toLowerCase();
+  const list = excipientes.filter(e=>{
+    const okName = !q || (e.nombre && e.nombre.toLowerCase().includes(q)) || (e.alternativos && e.alternativos.toLowerCase().includes(q));
+    const okFunc = !f || (e.funcion && e.funcion.toLowerCase().includes(f));
+    const okForm = !fo || (e.forma && e.forma.toLowerCase().includes(fo));
+    return okName && okFunc && okForm;
+  });
+  renderResults(list);
+  // predictive suggestions: update dropdown (simple)
+  showSuggestions(q, list.slice(0,6));
+}
+document.getElementById('qName').addEventListener('input', applyFilters);
+document.getElementById('qFunction').addEventListener('change', applyFilters);
+document.getElementById('qForm').addEventListener('change', applyFilters);
+document.getElementById('clearFilters').addEventListener('click', ()=>{ document.getElementById('qName').value=''; document.getElementById('qFunction').value=''; document.getElementById('qForm').value=''; applyFilters(); });
+
+/* suggestions simple */
+let suggestionBox = null;
+function showSuggestions(q, list){
+  // remove old
+  if(suggestionBox){ suggestionBox.remove(); suggestionBox=null; }
+  if(!q) return;
+  suggestionBox = document.createElement('div');
+  suggestionBox.style.position='absolute'; suggestionBox.style.background='var(--card)'; suggestionBox.style.border='1px solid #eee'; suggestionBox.style.borderRadius='8px'; suggestionBox.style.padding='6px'; suggestionBox.style.boxShadow='0 6px 18px rgba(0,0,0,0.08)';
+  suggestionBox.style.zIndex=9999;
+  suggestionBox.style.maxHeight='220px'; suggestionBox.style.overflow='auto';
+  suggestionBox.innerHTML = list.map(e=>`<div style="padding:6px 8px;cursor:pointer" data-id="${e.id}">${e.nombre} <span style="color:var(--muted)">— ${e.funcion}</span></div>`).join('');
+  document.body.appendChild(suggestionBox);
+  const rect = document.getElementById('qName').getBoundingClientRect();
+  suggestionBox.style.left = rect.left + 'px'; suggestionBox.style.top = rect.bottom + window.scrollY + 6 + 'px'; suggestionBox.style.minWidth = rect.width+'px';
+  suggestionBox.querySelectorAll('div[data-id]').forEach(div=>div.addEventListener('click', ev=>{ const id=ev.currentTarget.dataset.id; const ex=excipientes.find(x=>x.id===id); if(ex){ document.getElementById('qName').value = ex.nombre; applyFilters(); } suggestionBox.remove(); suggestionBox=null; }));
+}
+document.addEventListener('click', (ev)=>{ if(suggestionBox && !document.getElementById('qName').contains(ev.target) && !suggestionBox.contains(ev.target)){ suggestionBox.remove(); suggestionBox=null; } });
+
+/* -------------- Chat (rule-based + data search) -------------- */
+function appendChat(who, text){
+  const win = document.getElementById('chatWindow');
+  const el = document.createElement('div'); el.style.marginBottom='8px';
+  el.innerHTML = `<strong style="color:${who==='Lumin'?'var(--accent)':'#333'}">${who}:</strong> <span style="margin-left:6px">${text}</span>`;
+  win.appendChild(el); win.scrollTop = win.scrollHeight;
+}
+async function answerQuery(q){
+  q = (q||'').toLowerCase().trim();
+  if(!q) return;
+  appendChat('Tú', q);
+  // simple rules
+  // 1) buscar por palabra función
+  const funcs = ['aglutinante','diluyente','lubricante','edulcorante','conservante','desintegrante','suspensor','solvente','colorante'];
+  for(const f of funcs){ if(q.includes(f)){ const matches = excipientes.filter(e=>e.funcion.toLowerCase().includes(f)); if(matches.length){ const names = matches.slice(0,4).map(m=>m.nombre).join(', '); const resp = `Para función "${f}", algunos excipientes comunes: ${names}. ¿Quieres que compare algunos?`; appendChat('Lumin', resp); startMouth(); await speak(resp); stopMouth(); return; } } }
+  // 2) preguntar "mejor para" -> heurística: recomendar por forma farmacéutica
+  if(q.includes('mejor') && q.includes('tabla') || q.includes('comprimidos') || q.includes('masticables') || q.includes('jarabe')){
+    // try to guess
+    const recs = excipientes.filter(e=>e.forma.toLowerCase().includes('comprimidos') || e.aplicaciones?.toLowerCase().includes('comprimidos'));
+    if(recs.length){ const resp = `Para comprimidos, excipientes útiles: ${recs.slice(0,4).map(r=>r.nombre).join(', ')}.`; appendChat('Lumin', resp); startMouth(); await speak(resp); stopMouth(); return; }
+  }
+  // 3) buscar por nombre en la base
+  const found = excipientes.find(e => q.includes(e.nombre.toLowerCase()) || (e.alternativos && q.includes(e.alternativos.toLowerCase())));
+  if(found){
+    const resp = `${found.nombre}: ${found.descripcion} Función: ${found.funcion}. Aplicaciones: ${found.aplicaciones || found.forma}.`;
+    appendChat('Lumin', resp); startMouth(); await speak(resp); stopMouth(); addHistory(found.id); incrStat(found.id); return;
+  }
+  // 4) fallback: give tips
+  const fallback = `No estoy seguro. Puedo filtrar por función, forma farmacéutica, o comparar excipientes. ¿Quieres que busque excipientes para una forma farmacéutica específica?`;
+  appendChat('Lumin', fallback); startMouth(); await speak(fallback); stopMouth();
+}
+document.getElementById('chatSend').addEventListener('click', ()=>{ const q=document.getElementById('chatInput').value; if(!q) return; document.getElementById('chatInput').value=''; answerQuery(q); });
+
+/* -------------- Export JSON (simple API) -------------- */
+document.getElementById('downloadJson').addEventListener('click', ()=>{
+  const data = JSON.stringify(excipientes, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='excipientes.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+});
+
+/* -------------- Activate Lumin, test, theme -------------- */
+document.getElementById('activateBtn').addEventListener('click', async ()=>{
+  await loadVoicesOnce();
+  startMouth();
+  await speak('Hola, soy Lumin, tu asistente de búsqueda de excipientes farmacéuticos. Estoy lista para ayudarte.');
+  stopMouth();
+  document.getElementById('activateBtn').style.display='none';
+});
+document.getElementById('testSpeak').addEventListener('click', async ()=>{ startMouth(); await speak('Prueba de voz. Lumin está listo para ayudarte.'); stopMouth(); });
+
+document.getElementById('themeBtn').addEventListener('click', ()=>{
+  const body = document.body; const cur = body.getAttribute('data-theme')||'light'; const next = cur==='light'?'dark':'light'; body.setAttribute('data-theme', next); document.getElementById('themeBtn').innerText = next==='dark' ? '☀️ Modo claro' : '🌙 Modo oscuro';
+});
+
+/* -------------- Simple exportAll placeholder (can be enhanced) -------------- */
+document.getElementById('exportAll').addEventListener('click', ()=>{ alert('Exportar todo (ZIP con PDFs) puede añadirse. Puedo implementarlo si quieres.'); });
+
+/* -------------- Init: render all -------------- */
+applyFilters(); updateCompareUI(); updateStatsUI();
+
+</script>
+</body>
+</html>
