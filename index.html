@@ -222,13 +222,13 @@ function createCard(ex){
   const a = document.createElement('article'); a.className='card'; a.dataset.id=ex.id;
   a.innerHTML = `
     <h3>${ex.nombre}</h3>
+    <div class="field"><strong>Descripción:</strong> ${ex.descripcion}</div>
     <div class="meta"><strong>Sinónimo:</strong> ${ex.alternativos||'-'}</div>
     <div class="meta"><strong>Nombre químico:</strong> ${ex.nombreQuimico||'-'}</div>
     <div class="meta"><strong>Fórmula:</strong> ${ex.formula||'-'}</div>
     <div class="field"><strong>Función:</strong> ${ex.funcion}</div>
-    <div class="field"><strong>Forma farmacéutica:</strong> ${ex.forma}</div>
-    <div class="field"><strong>Descripción:</strong> ${ex.descripcion}</div>
-    <div class="field"><strong>Aplicaciones:</strong> ${ex.aplicaciones||'-'}</div>
+    <div class="field"><strong>Uso en forma farmacéutica:</strong> ${ex.forma}</div>
+    <div class="field"><strong>Aplicación:</strong> ${ex.aplicaciones||'-'}</div>
     <div class="field"><strong>Almacenamiento:</strong> ${ex.almacenamiento||'-'}</div>
     <div class="field"><strong>Incompatibilidades:</strong> ${ex.incompatibilidades||'-'}</div>
     <div class="actions">
