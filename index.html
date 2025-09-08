@@ -162,6 +162,21 @@
 
     <footer>Para decisiones regulatorias, consulte farmacopeas y certificado de análisis de proveedores oficiales.</footer>
   </div>
+
+<script>
+/* ---------------------- Datos: 10 excipientes ---------------------- */
+const excipientes = [
+  { id:"lac", nombre:"Lactosa monohidrato", alternativos:"Milk sugar", nombreQuimico:"β-D-galactopiranosil-(1→4)-D-glucosa · H2O", formula:"C12H22O11 · H2O", smiles:"O[C@@H]1[C@H](O)[C@@H](O[C@H]2O[C@@H](CO)[C@H](O)[C@H]2O)[C@@H](O)[C@H](O)[C@H]1O", funcion:"Diluyente", forma:"Comprimidos", descripcion:"Polvo cristalino, diluyente y agente de carga; buena compresibilidad.", aplicaciones:"Tabletas, cápsulas, polvos para suspensión.", almacenamiento:"Lugar fresco y seco.", incompatibilidades:"Aminas (Maillard)"},
+  { id:"cel", nombre:"Celulosa microcristalina", alternativos:"Avicel®", nombreQuimico:"Polímero de β-1,4-glucosa", formula:"(C6H10O5)n", smiles:"", funcion:"Aglutinante / Diluyente", forma:"Comprimidos", descripcion:"Excelente compresibilidad; se usa en compresión directa.", aplicaciones:"Comprimidos, recubrimientos.", almacenamiento:"Lugar seco.", incompatibilidades:"Oxidantes fuertes"},
+  { id:"est", nombre:"Estearato de magnesio", alternativos:"Magnesium stearate", nombreQuimico:"Octadecanoato de magnesio", formula:"C36H70MgO4", smiles:"CCCCCCCCCCCCCCCCCC(=O)[O-].[Mg+2].O=C([O-])CCCCCCCCCCCCCCCCC", funcion:"Lubricante", forma:"Comprimidos", descripcion:"Lubricante hidrofóbico que reduce fricción en punzones.", aplicaciones:"Tabletas y cápsulas.", almacenamiento:"Envase hermético.", incompatibilidades:"Exceso puede retardar disolución"},
+  { id:"pov", nombre:"Povidona", alternativos:"Polivinilpirrolidona (PVP)", nombreQuimico:"Polímero 1-vinil-2-pirrolidona", formula:"(C6H9NO)n", smiles:"", funcion:"Aglutinante", forma:"Comprimidos", descripcion:"Polímero hidrosoluble como aglutinante y solubilizante.", aplicaciones:"Tabletas, cápsulas.", almacenamiento:"Envase cerrado.", incompatibilidades:"Oxidantes"},
+  { id:"sor", nombre:"Sorbitol", alternativos:"Glucitol", nombreQuimico:"D-glucitol", formula:"C6H14O6", smiles:"C(C(C(C(C(CO)O)O)O)O)O", funcion:"Edulcorante / Humectante", forma:"Jarabes", descripcion:"Polialcohol edulcorante; humectante en jarabes.", aplicaciones:"Jarabes, masticables.", almacenamiento:"Envase hermético.", incompatibilidades:"Efecto laxante a altas dosis"},
+  { id:"met", nombre:"Metilparabeno", alternativos:"Methylparaben", nombreQuimico:"p-hidroxibenzoato de metilo", formula:"C8H8O3", smiles:"COC(=O)C1=CC=C(C=C1)O", funcion:"Conservante", forma:"Jarabes", descripcion:"Conservante antimicrobiano en medios ácidos.", aplicaciones:"Jarabes, cremas.", almacenamiento:"Protegido de la luz.", incompatibilidades:"Medios alcalinos"},
+  { id:"pro", nombre:"Propilenglicol", alternativos:"1,2-propanodiol", nombreQuimico:"Propano-1,2-diol", formula:"C3H8O2", smiles:"CC(CO)O", funcion:"Solvente / Humectante", forma:"Jarabes", descripcion:"Solvente hidrofílico usado como humectante.", aplicaciones:"Jarabes, soluciones tópicas.", almacenamiento:"Envase cerrado.", incompatibilidades:"Oxidantes fuertes"},
+  { id:"sio2", nombre:"Dióxido de silicio coloidal", alternativos:"Sílice coloidal", nombreQuimico:"SiO2", formula:"SiO2", smiles:"", funcion:"Fluidez / Absorbente", forma:"Comprimidos", descripcion:"Mejora la fluidez y absorción de humedad.", aplicaciones:"Tabletas, polvos.", almacenamiento:"Lugar seco.", incompatibilidades:"Evitar HF"},
+  { id:"ben", nombre:"Benzoato de sodio", alternativos:"Sodium benzoate", nombreQuimico:"Benzoato de sodio", formula:"C7H5NaO2", smiles:"C1=CC=C(C=C1)C(=O)[O-].[Na+]", funcion:"Conservante", forma:"Jarabes", descripcion:"Conservante eficaz en medios ácidos.", aplicaciones:"Jarabes, soluciones.", almacenamiento:"Envase hermético.", incompatibilidades:"Medios muy alcalinos"},
+  { id:"gel", nombre:"Gelatina", alternativos:"Colágeno parcialmente hidrolizado", nombreQuimico:"Proteína derivada del colágeno", formula:"Variable", smiles:"", funcion:"Formador de cápsulas", forma:"Cápsulas", descripcion:"Proteína filmógena usada para cápsulas.", aplicaciones:"Cápsulas, recubrimientos.", almacenamiento:"Ambiente seco.", incompatibilidades:"Desnaturalizantes"}
+];
 /* ---------------------- Cargar excipientes extra desde Google Sheets ---------------------- */
 async function loadExcipientesFromSheet() {
   const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQWFLzeX1eM6hxjjHNbeD8gmKusVgs2KpClnMhZbb_Rie3VIo_VdV-3-d2NmJJmVy7TvXHzcfKt4pTK/pub?gid=0&single=true&output=csv'; // reemplaza con la URL CSV de tu Google Sheet
@@ -478,4 +493,3 @@ loadExcipientesFromSheet();
 </script>
 </body>
 </html>  
-
