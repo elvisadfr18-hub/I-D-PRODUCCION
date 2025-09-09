@@ -463,11 +463,11 @@ document.getElementById('downloadJson').addEventListener('click', ()=>{
 document.getElementById('activateBtn').addEventListener('click', async ()=>{
   await loadVoicesOnce();
   startMouth();
-  await speak('Hola, soy Lumin, tu asistente de búsqueda de excipientes farmacéuticos. Estoy lista para ayudarte.');
+  await speak('Hola, soy Lumin, tu asistente de búsqueda de excipientes farmacéuticos. Estoy listo para ayudarte.');
   stopMouth();
   document.getElementById('activateBtn').style.display='none';
 });
-document.getElementById('testSpeak').addEventListener('click', async ()=>{ startMouth(); await speak('Prueba de voz. Lumin está listo para ayudarte.'); stopMouth(); });
+document.getElementById('testSpeak').addEventListener('click', async ()=>{ startMouth(); await speak('Esto es una prueba de voz. Lumin está listo para ayudarte.'); stopMouth(); });
 
 document.getElementById('themeBtn').addEventListener('click', ()=>{
   const body = document.body; const cur = body.getAttribute('data-theme')||'light'; const next = cur==='light'?'dark':'light'; body.setAttribute('data-theme', next); document.getElementById('themeBtn').innerText = next==='dark' ? '☀️ Modo claro' : '🌙 Modo oscuro';
@@ -482,5 +482,6 @@ loadExcipientesFromSheet();
 </script>
 </body>
 </html>  
+
 
 
